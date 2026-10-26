@@ -20,4 +20,10 @@
   <string name="google_coming_soon">Coming soon</string>
   <string name="continue_guest">Continue as guest</string>
   <string name="guest_description">No account needed. Saved on your device.</string>
+  <string name="delete_habit">Delete habit</string>
+  <string name="delete_habit_title">Delete this habit?</string>
+  <string name="delete_habit_message">Delete “%1$s” and its completion history? This cannot be undone.</string>
+  <string name="delete_habit_accessibility">Delete %1$s</string>
+  <string name="cancel">Cancel</string>
+  <string name="save_failed">Could not save. Please try again.</string>
 </resources>

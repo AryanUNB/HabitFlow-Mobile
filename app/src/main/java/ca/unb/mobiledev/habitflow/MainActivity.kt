@@ -1,5 +1,6 @@
 package ca.unb.mobiledev.habitflow
 
+import android.app.AlertDialog
 import android.app.Activity
 import android.content.Intent
 import android.os.Build
@@ -142,7 +143,28 @@ class MainActivity : Activity() {
                     render()
                 }
             }
+            row.findViewById<Button>(R.id.delete_habit).apply {
+                contentDescription = getString(R.string.delete_habit_accessibility, habit.name)
+                setOnClickListener { confirmDelete(habit) }
+            }
             list.addView(row)
         }
     }
+
+    private fun confirmDelete(habit: Habit) {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.delete_habit_title)
+            .setMessage(getString(R.string.delete_habit_message, habit.name))
+            .setNegativeButton(R.string.cancel, null)
+            .setPositiveButton(R.string.delete_habit) { _, _ ->
+                // Read current data so other changes are preserved when removing this habit.
+                val remaining = repository.load().filterNot { it.id == habit.id }
+                if (!repository.save(remaining)) {
+                    Toast.makeText(this, R.string.save_failed, Toast.LENGTH_LONG).show()
+                }
+                render()
+            }
+            .show()
+    }
+
 }

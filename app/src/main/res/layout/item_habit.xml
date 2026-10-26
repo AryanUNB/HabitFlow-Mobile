@@ -3,4 +3,8 @@
   <TextView android:id="@+id/habit_name" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="20sp" android:textStyle="bold" android:textColor="#153E35" />
   <TextView android:id="@+id/habit_detail" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="14sp" />
   <CheckBox android:id="@+id/habit_complete" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/completed_today" />
+  <Button android:id="@+id/delete_habit" android:layout_width="wrap_content"
+      android:layout_height="wrap_content" android:minHeight="48dp"
+      style="?android:attr/borderlessButtonStyle" android:text="@string/delete_habit"
+      android:textColor="#9B3737" android:textAllCaps="false" />
 </LinearLayout>

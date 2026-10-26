@@ -21,6 +21,7 @@ Developed for **CS2063 — Introduction to Mobile Application Development** at t
 - Home dashboard showing the current date, habits, and daily completion progress.
 - Custom habits with a name, weekly target of 1–7 days, and an optional category.
 - Daily completion tracking with undo and one completion per habit per date.
+- Habit deletion with confirmation before removing the habit and its history.
 - Local storage for habits and completion history.
 - Weekly statistics with completion counts, a bar chart, and a circular goal indicator.
 
