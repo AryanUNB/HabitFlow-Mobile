@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="#F3F7F4" android:fillViewport="true">
+  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="24dp" android:orientation="vertical">
+    <Button android:id="@+id/back" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/back" />
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/build_a_new_habit" android:textSize="28sp" android:textStyle="bold" android:textColor="#153E35" android:layout_marginBottom="24dp" />
+    <EditText android:id="@+id/name" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/habit_name_required" android:inputType="textCapSentences" android:maxLength="80" android:maxLines="1" android:minHeight="56dp" />
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/weekly_target_days_per_week" android:layout_marginTop="24dp" android:textSize="16sp" android:labelFor="@id/target" />
+    <Spinner android:id="@+id/target" android:layout_width="match_parent" android:layout_height="56dp" />
+    <EditText android:id="@+id/category" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/category_optional" android:inputType="textCapWords" android:maxLength="40" android:maxLines="1" android:minHeight="56dp" />
+    <Button android:id="@+id/save" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/save_habit" android:layout_marginTop="24dp" />
+  </LinearLayout>
+</ScrollView>

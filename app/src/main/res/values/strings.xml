@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <string name="app_name">HabitFlow</string>
+  <string name="back">Back</string>
+  <string name="build_a_new_habit">Build a new habit</string>
+  <string name="habit_name_required">Habit name (required)</string>
+  <string name="weekly_target_days_per_week">Weekly target (days per week)</string>
+  <string name="category_optional">Category (optional)</string>
+  <string name="save_habit">Save habit</string>
+  <string name="completed_today">Completed today</string>
+  <string name="your_week_in_focus">Your week in focus</string>
+  <string name="weekly_goals">Weekly goals</string>
+  <string name="a_little_progress_every_day">A little progress, every day</string>
+  <string name="add_habit">+ Add habit</string>
+  <string name="weekly_statistics">Weekly statistics</string>
+  <string name="your_habits">Your habits</string>
+  <string name="welcome_title">Small habits.\nLasting growth.</string>
+  <string name="welcome_description">A little progress, every day.</string>
+  <string name="continue_google">Continue with Google</string>
+  <string name="google_coming_soon">Coming soon</string>
+  <string name="continue_guest">Continue as guest</string>
+  <string name="guest_description">No account needed. Saved on your device.</string>
+</resources>

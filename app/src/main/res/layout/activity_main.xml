@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:background="#F3F7F4">
+  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="24dp">
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/app_name" android:textSize="32sp" android:textStyle="bold" android:textColor="#153E35" />
+    <TextView android:id="@+id/date" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="16sp" android:layout_marginBottom="24dp" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:background="@drawable/card_background">
+      <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/a_little_progress_every_day" android:textSize="20sp" android:textStyle="bold" android:textColor="#153E35" />
+      <TextView android:id="@+id/progress_label" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:textSize="16sp" />
+      <ProgressBar android:id="@+id/today_progress" style="?android:attr/progressBarStyleHorizontal" android:layout_width="match_parent" android:layout_height="16dp" android:max="100" />
+    </LinearLayout>
+    <Button android:id="@+id/add_habit" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="20dp" android:text="@string/add_habit" />
+    <Button android:id="@+id/open_stats" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/weekly_statistics" />
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/your_habits" android:textSize="22sp" android:textStyle="bold" android:textColor="#153E35" android:layout_marginTop="20dp" android:layout_marginBottom="12dp" />
+    <LinearLayout android:id="@+id/habit_list" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" />
+  </LinearLayout>
+</ScrollView>

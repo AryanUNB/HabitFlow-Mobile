@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:fillViewport="true" android:background="#FFFFFF" android:clipToPadding="false">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:gravity="center_horizontal"
+        android:paddingHorizontal="32dp" android:paddingTop="48dp" android:paddingBottom="28dp">
+        <Space android:layout_width="1dp" android:layout_height="24dp" android:layout_weight="1" />
+        <ImageView android:layout_width="180dp" android:layout_height="180dp"
+            android:src="@drawable/habitflow_logo" android:scaleType="fitCenter"
+            android:contentDescription="@string/app_name" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/welcome_title" android:textSize="30sp" android:fontFamily="sans-serif-medium"
+            android:textColor="#183D31" android:gravity="center" android:lineSpacingExtra="3dp"
+            android:layout_marginTop="20dp" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/welcome_description" android:textSize="16sp" android:textColor="#77817B"
+            android:gravity="center" android:lineSpacingExtra="5dp" android:layout_marginTop="14dp" />
+        <Space android:layout_width="1dp" android:layout_height="48dp" android:layout_weight="1" />
+        <Button android:id="@+id/continue_google" android:layout_width="match_parent"
+            android:layout_height="56dp" android:enabled="false" android:background="@drawable/welcome_google"
+            android:backgroundTint="@null" android:stateListAnimator="@null" android:elevation="0dp"
+            android:drawableStart="@drawable/ic_google" android:drawablePadding="12dp"
+            android:paddingHorizontal="22dp" android:text="@string/continue_google"
+            android:textColor="#34453C" android:textSize="16sp" android:fontFamily="sans-serif-medium"
+            android:textAllCaps="false" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/google_coming_soon" android:textSize="12sp" android:textColor="#77817B"
+            android:gravity="center" android:layout_marginTop="8dp" android:layout_marginBottom="22dp" />
+        <Button android:id="@+id/continue_guest" android:layout_width="match_parent"
+            android:layout_height="56dp" android:background="@drawable/welcome_guest"
+            android:backgroundTint="@null" android:stateListAnimator="@null" android:elevation="0dp"
+            android:text="@string/continue_guest" android:textColor="#FFFFFF" android:textSize="16sp"
+            android:fontFamily="sans-serif-medium" android:textAllCaps="false" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/guest_description" android:textSize="12sp" android:textColor="#77817B"
+            android:gravity="center" android:lineSpacingExtra="3dp" android:layout_marginTop="18dp" />
+    </LinearLayout>
+</ScrollView>

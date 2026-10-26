@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <style name="Theme.HabitFlow" parent="android:Theme.Material.Light.NoActionBar">
+    <item name="android:fontFamily">sans</item>
+    <item name="android:colorAccent">#247659</item>
+    <item name="android:windowLightStatusBar">true</item>
+    <item name="android:statusBarColor">#F3F7F4</item>
+    <item name="android:navigationBarColor">#F3F7F4</item>
+    <item name="android:windowLightNavigationBar">true</item>
+  </style>
+  <style name="Theme.HabitFlow.Splash" parent="Theme.HabitFlow">
+    <item name="android:windowBackground">@android:color/white</item>
+    <item name="android:statusBarColor">@android:color/white</item>
+    <item name="android:navigationBarColor">@android:color/white</item>
+  </style>
+</resources>
