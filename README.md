@@ -95,6 +95,46 @@ Weeks run from **Monday through Sunday**. Each habit contributes up to its own w
 
 The dashboard tracks daily completion separately from weekly goals. Statistics reflect recorded completions; the app does not generate sample history.
 
+## Architecture
+
+HabitFlow uses a simple activity-based architecture. Activities handle user interactions and read or save `Habit` records through `HabitRepository`. Weekly calculations live in `HabitStats`, while custom Views draw the charts and splash decorations.
+
+```mermaid
+flowchart TD
+    subgraph UI["User interface — Kotlin activities and XML layouts"]
+        Main["MainActivity<br/>Splash → Welcome → Dashboard"]
+        Add["AddHabitActivity<br/>Create and validate habits"]
+        Stats["StatsActivity<br/>Weekly progress"]
+        Float["FloatingHabitsView<br/>Splash emojis"]
+        Chart["WeeklyChartView<br/>Bars and progress ring"]
+        Main -->|opens| Add
+        Main -->|opens| Stats
+        Main -->|displays on splash| Float
+        Stats -->|supplies chart values| Chart
+    end
+
+    subgraph Logic["Models and calculations"]
+        Habit["Habit<br/>ID, name, target, category, completion dates"]
+        Calc["HabitStats<br/>Week boundaries, counts, goal percentage"]
+        Calc -->|calculates from| Habit
+    end
+
+    subgraph Data["Local persistence"]
+        Repo["HabitRepository<br/>Load and save Habit records"]
+        Store[("Private SharedPreferences<br/>JSON stored on device")]
+        Repo <-->|read and write JSON| Store
+        Repo -->|serializes and restores| Habit
+    end
+
+    Main -->|load, complete, undo, delete| Repo
+    Add -->|load and save| Repo
+    Stats -->|load| Repo
+    Main -->|weekly habit counts| Calc
+    Stats -->|weekly goal statistics| Calc
+```
+
+All core data stays on the device. Google sign-in is not part of the current architecture; its welcome-screen option is reserved for a future integration.
+
 ## Code organization
 
 Source files are in `app/src/main/java/ca/unb/mobiledev/habitflow/`.
