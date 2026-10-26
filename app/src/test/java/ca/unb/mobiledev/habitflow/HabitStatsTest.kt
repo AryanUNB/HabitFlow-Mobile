@@ -22,4 +22,32 @@ class HabitStatsTest {
         assertEquals(1, dates.size)
         assertEquals(emptySet<LocalDate>(), dates - friday)
     }
+
+    @Test fun weekSpansYearBoundary() {
+        val newYear = LocalDate.of(2027, 1, 1)
+        val habit = Habit("1", "Read", 5, "", setOf(
+            LocalDate.of(2026, 12, 27), LocalDate.of(2026, 12, 28), newYear))
+        assertEquals(LocalDate.of(2026, 12, 28), HabitStats.weekStart(newYear))
+        assertEquals(2, HabitStats.count(habit, newYear))
+    }
+
+    @Test fun newWeekResetsProgressWithoutDeletingHistory() {
+        val previousSunday = LocalDate.of(2026, 10, 25)
+        val habit = Habit("1", "Walk", 3, "", setOf(previousSunday))
+        assertEquals(1, HabitStats.count(habit, previousSunday))
+        assertEquals(0, HabitStats.count(habit, previousSunday.plusDays(1)))
+        assertEquals(setOf(previousSunday), habit.completions)
+    }
+
+    @Test fun overallProgressUsesTargetsRatherThanAveragePercentages() {
+        val easyGoal = Habit("1", "Read", 1, "", setOf(friday))
+        val largerGoal = Habit("2", "Walk", 7, "", setOf(friday))
+        assertEquals(25, HabitStats.percent(listOf(easyGoal, largerGoal), friday))
+    }
+
+    @Test fun exceedingEveryTargetStopsAtOneHundredPercent() {
+        val habit = Habit("1", "Walk", 1, "", setOf(friday, friday.minusDays(1)))
+        assertEquals(100, HabitStats.percent(listOf(habit), friday))
+    }
+
 }
