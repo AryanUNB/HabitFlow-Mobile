@@ -2,8 +2,8 @@
 package ca.unb.mobiledev.habitflow
 
 import android.Manifest
-import android.app.AlertDialog
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -21,9 +21,10 @@ class MainActivity : Activity() {
     private val handler = Handler(Looper.getMainLooper())
     private var splashDeadline = 0L
     private var entryVisible = false
-    private val openEntry = Runnable { showEntry() }
     private var guestSelected = false
     private var removeSystemSplash: Runnable? = null
+
+    private val openEntry = Runnable { showEntry() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -138,10 +139,7 @@ class MainActivity : Activity() {
         setContentView(R.layout.activity_main)
         fitSystemBars()
 
-        // Request notification permission.
         requestNotificationPermission()
-
-        // Schedule approximate daily reminders at 8 PM.
         HabitReminderScheduler.schedule(this)
 
         findViewById<Button>(R.id.add_habit).setOnClickListener {
@@ -160,7 +158,8 @@ class MainActivity : Activity() {
     }
 
     private fun requestNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+        if (
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) !=
             PackageManager.PERMISSION_GRANTED
         ) {
@@ -181,6 +180,20 @@ class MainActivity : Activity() {
 
     private companion object {
         const val SPLASH_DURATION_MS = 4_000L
+    }
+
+    // Choose an icon based on the habit category.
+    private fun categoryIcon(category: String): String {
+        return when (category.trim().lowercase()) {
+            "study" -> "📚"
+            "recovery" -> "🌿"
+            "relationships" -> "❤️"
+            "health" -> "💪"
+            "water", "hydration" -> "💧"
+            "fitness", "exercise" -> "🏃"
+            "sleep" -> "🌙"
+            else -> "🎯"
+        }
     }
 
     private fun render() {
@@ -211,31 +224,61 @@ class MainActivity : Activity() {
 
         if (habits.isEmpty()) {
             list.addView(TextView(this).apply {
-                text =
-                    "Start small. Add your first habit and take the first step today."
+                text = "Start small. Add your first habit and take the first step today."
                 textSize = 17f
             })
         }
 
         habits.forEach { habit ->
+
             val row = layoutInflater.inflate(
                 R.layout.item_habit,
                 list,
                 false
             )
 
+            // Habit name.
             row.findViewById<TextView>(R.id.habit_name).text =
                 habit.name
 
+            // Category icon.
+            row.findViewById<TextView>(R.id.habit_icon).text =
+                categoryIcon(habit.category)
+
+            // Weekly completion data.
+            val weeklyCompleted = HabitStats.count(habit, today)
+
             row.findViewById<TextView>(R.id.habit_detail).text =
-                "${HabitStats.count(habit, today)}/${habit.target} days this week" +
+                "$weeklyCompleted/${habit.target} days this week" +
                         if (habit.category.isBlank()) {
                             ""
                         } else {
                             " • ${habit.category}"
                         }
 
-            row.findViewById<CheckBox>(R.id.habit_complete).apply {
+            // Weekly progress percentage, capped at 100%.
+            val progressPercent =
+                if (habit.target > 0) {
+                    (weeklyCompleted * 100 / habit.target)
+                        .coerceIn(0, 100)
+                } else {
+                    0
+                }
+
+            row.findViewById<ProgressBar>(
+                R.id.habit_progress
+            ).apply {
+                max = 100
+                progress = progressPercent
+                contentDescription =
+                    "${habit.name}: $progressPercent percent of weekly goal"
+            }
+
+            // Daily completion checkbox.
+            row.findViewById<CheckBox>(
+                R.id.habit_complete
+            ).apply {
+
                 isChecked = today in habit.completions
 
                 setOnCheckedChangeListener { _, checked ->
@@ -268,7 +311,11 @@ class MainActivity : Activity() {
                 }
             }
 
-            row.findViewById<Button>(R.id.delete_habit).apply {
+            // Delete habit button.
+            row.findViewById<Button>(
+                R.id.delete_habit
+            ).apply {
+
                 contentDescription = getString(
                     R.string.delete_habit_accessibility,
                     habit.name
@@ -294,6 +341,7 @@ class MainActivity : Activity() {
             )
             .setNegativeButton(R.string.cancel, null)
             .setPositiveButton(R.string.delete_habit) { _, _ ->
+
                 val remaining = repository.load()
                     .filterNot { it.id == habit.id }
 

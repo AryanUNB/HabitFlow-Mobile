@@ -1,10 +1,98 @@
-<?xml version='1.0' encoding='utf-8'?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginBottom="12dp" android:background="@drawable/card_background">
-  <TextView android:id="@+id/habit_name" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="20sp" android:textStyle="bold" android:textColor="#153E35" />
-  <TextView android:id="@+id/habit_detail" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="14sp" />
-  <CheckBox android:id="@+id/habit_complete" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/completed_today" />
-  <Button android:id="@+id/delete_habit" android:layout_width="wrap_content"
-      android:layout_height="wrap_content" android:minHeight="48dp"
-      style="?android:attr/borderlessButtonStyle" android:text="@string/delete_habit"
-      android:textColor="#9B3737" android:textAllCaps="false" />
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="18dp"
+    android:layout_marginBottom="14dp"
+    android:background="@drawable/card_background">
+
+  <!-- Habit heading -->
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="horizontal"
+      android:gravity="center_vertical">
+
+    <TextView
+        android:id="@+id/habit_icon"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:gravity="center"
+        android:text="🎯"
+        android:textSize="28sp"
+        android:importantForAccessibility="no"
+        android:layout_marginEnd="12dp" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+      <TextView
+          android:id="@+id/habit_name"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:textSize="20sp"
+          android:textStyle="bold"
+          android:textColor="#153E35"
+          android:maxLines="2" />
+
+      <TextView
+          android:id="@+id/habit_detail"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="4dp"
+          android:textSize="14sp"
+          android:textColor="#64766E" />
+
+    </LinearLayout>
+
+  </LinearLayout>
+
+  <!-- Weekly progress -->
+  <ProgressBar
+      android:id="@+id/habit_progress"
+      style="?android:attr/progressBarStyleHorizontal"
+      android:layout_width="match_parent"
+      android:layout_height="8dp"
+      android:layout_marginTop="20dp"
+      android:max="100"
+      android:progress="0"
+      android:progressTint="#278568"
+      android:progressBackgroundTint="#DFEAE3" />
+
+  <!-- Actions -->
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="horizontal"
+      android:gravity="center_vertical"
+      android:layout_marginTop="14dp">
+
+    <CheckBox
+        android:id="@+id/habit_complete"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:minHeight="48dp"
+        android:text="@string/completed_today"
+        android:textColor="#153E35"
+        android:textSize="14sp"
+        android:buttonTint="#278568" />
+
+    <Button
+        android:id="@+id/delete_habit"
+        style="?android:attr/borderlessButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:text="@string/delete_habit"
+        android:textColor="#9B3737"
+        android:textSize="13sp"
+        android:textAllCaps="false" />
+
+  </LinearLayout>
+
 </LinearLayout>
