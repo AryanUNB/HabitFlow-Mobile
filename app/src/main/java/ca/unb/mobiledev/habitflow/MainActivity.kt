@@ -154,10 +154,16 @@ class MainActivity : Activity() {
             )
         }
 
-        // Open the Water Tracker screen.
         findViewById<Button>(R.id.open_water_tracker).setOnClickListener {
             startActivity(
                 Intent(this, WaterTrackerActivity::class.java)
+            )
+        }
+
+        // Feature 5: Step Counter
+        findViewById<Button>(R.id.open_step_tracker).setOnClickListener {
+            startActivity(
+                Intent(this, StepTrackerActivity::class.java)
             )
         }
 

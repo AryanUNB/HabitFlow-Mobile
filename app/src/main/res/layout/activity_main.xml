@@ -78,6 +78,14 @@
         android:textAllCaps="false"
         android:layout_marginTop="8dp" />
 
+    <Button
+        android:id="@+id/open_step_tracker"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Step Counter"
+        android:textAllCaps="false"
+        android:layout_marginTop="8dp" />
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
