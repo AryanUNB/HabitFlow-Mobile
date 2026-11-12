@@ -154,6 +154,13 @@ class MainActivity : Activity() {
             )
         }
 
+        // Open the Water Tracker screen.
+        findViewById<Button>(R.id.open_water_tracker).setOnClickListener {
+            startActivity(
+                Intent(this, WaterTrackerActivity::class.java)
+            )
+        }
+
         render()
     }
 
@@ -182,7 +189,6 @@ class MainActivity : Activity() {
         const val SPLASH_DURATION_MS = 4_000L
     }
 
-    // Choose an icon based on the habit category.
     private fun categoryIcon(category: String): String {
         return when (category.trim().lowercase()) {
             "study" -> "📚"
@@ -224,28 +230,25 @@ class MainActivity : Activity() {
 
         if (habits.isEmpty()) {
             list.addView(TextView(this).apply {
-                text = "Start small. Add your first habit and take the first step today."
+                text =
+                    "Start small. Add your first habit and take the first step today."
                 textSize = 17f
             })
         }
 
         habits.forEach { habit ->
-
             val row = layoutInflater.inflate(
                 R.layout.item_habit,
                 list,
                 false
             )
 
-            // Habit name.
             row.findViewById<TextView>(R.id.habit_name).text =
                 habit.name
 
-            // Category icon.
             row.findViewById<TextView>(R.id.habit_icon).text =
                 categoryIcon(habit.category)
 
-            // Weekly completion data.
             val weeklyCompleted = HabitStats.count(habit, today)
 
             row.findViewById<TextView>(R.id.habit_detail).text =
@@ -256,7 +259,6 @@ class MainActivity : Activity() {
                             " • ${habit.category}"
                         }
 
-            // Weekly progress percentage, capped at 100%.
             val progressPercent =
                 if (habit.target > 0) {
                     (weeklyCompleted * 100 / habit.target)
@@ -274,11 +276,9 @@ class MainActivity : Activity() {
                     "${habit.name}: $progressPercent percent of weekly goal"
             }
 
-            // Daily completion checkbox.
             row.findViewById<CheckBox>(
                 R.id.habit_complete
             ).apply {
-
                 isChecked = today in habit.completions
 
                 setOnCheckedChangeListener { _, checked ->
@@ -311,11 +311,9 @@ class MainActivity : Activity() {
                 }
             }
 
-            // Delete habit button.
             row.findViewById<Button>(
                 R.id.delete_habit
             ).apply {
-
                 contentDescription = getString(
                     R.string.delete_habit_accessibility,
                     habit.name
@@ -341,7 +339,6 @@ class MainActivity : Activity() {
             )
             .setNegativeButton(R.string.cancel, null)
             .setPositiveButton(R.string.delete_habit) { _, _ ->
-
                 val remaining = repository.load()
                     .filterNot { it.id == habit.id }
 
