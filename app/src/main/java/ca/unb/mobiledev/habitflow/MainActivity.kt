@@ -18,13 +18,18 @@ import java.time.format.DateTimeFormatter
 class MainActivity : Activity() {
 
     private lateinit var repository: HabitRepository
+
     private val handler = Handler(Looper.getMainLooper())
+
     private var splashDeadline = 0L
     private var entryVisible = false
     private var guestSelected = false
+
     private var removeSystemSplash: Runnable? = null
 
-    private val openEntry = Runnable { showEntry() }
+    private val openEntry = Runnable {
+        showEntry()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,7 +57,10 @@ class MainActivity : Activity() {
                         )
                     )
 
-                    val remove = Runnable { splash.remove() }
+                    val remove = Runnable {
+                        splash.remove()
+                    }
+
                     removeSystemSplash = remove
 
                     handler.postDelayed(
@@ -120,7 +128,9 @@ class MainActivity : Activity() {
         setContentView(R.layout.activity_welcome)
         fitSystemBars()
 
-        findViewById<Button>(R.id.continue_guest).setOnClickListener {
+        findViewById<Button>(
+            R.id.continue_guest
+        ).setOnClickListener {
             guestSelected = true
             showDashboard()
         }
@@ -128,6 +138,7 @@ class MainActivity : Activity() {
 
     private fun showDashboard() {
         entryVisible = true
+
         setTheme(R.style.Theme_HabitFlow)
 
         window.statusBarColor =
@@ -142,26 +153,37 @@ class MainActivity : Activity() {
         requestNotificationPermission()
         HabitReminderScheduler.schedule(this)
 
-        findViewById<Button>(R.id.add_habit).setOnClickListener {
+        // Add a new habit
+        findViewById<Button>(
+            R.id.add_habit
+        ).setOnClickListener {
             startActivity(
                 Intent(this, AddHabitActivity::class.java)
             )
         }
 
-        findViewById<Button>(R.id.open_stats).setOnClickListener {
+        // Weekly statistics
+        findViewById<Button>(
+            R.id.open_stats
+        ).setOnClickListener {
             startActivity(
                 Intent(this, StatsActivity::class.java)
             )
         }
 
-        findViewById<Button>(R.id.open_water_tracker).setOnClickListener {
+        // Water Tracker
+        findViewById<Button>(
+            R.id.open_water_tracker
+        ).setOnClickListener {
             startActivity(
                 Intent(this, WaterTrackerActivity::class.java)
             )
         }
 
-        // Feature 5: Step Counter
-        findViewById<Button>(R.id.open_step_tracker).setOnClickListener {
+        // Step Counter
+        findViewById<Button>(
+            R.id.open_step_tracker
+        ).setOnClickListener {
             startActivity(
                 Intent(this, StepTrackerActivity::class.java)
             )
@@ -173,8 +195,9 @@ class MainActivity : Activity() {
     private fun requestNotificationPermission() {
         if (
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) !=
-            PackageManager.PERMISSION_GRANTED
+            checkSelfPermission(
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
         ) {
             requestPermissions(
                 arrayOf(Manifest.permission.POST_NOTIFICATIONS),
@@ -221,17 +244,22 @@ class MainActivity : Activity() {
             today in it.completions
         }
 
-        findViewById<TextView>(R.id.progress_label).text =
-            "$completed of ${habits.size} habits completed today"
+        findViewById<TextView>(
+            R.id.progress_label
+        ).text = "$completed of ${habits.size} habits completed today"
 
-        findViewById<ProgressBar>(R.id.today_progress).progress =
-            if (habits.isEmpty()) {
-                0
-            } else {
-                completed * 100 / habits.size
-            }
+        findViewById<ProgressBar>(
+            R.id.today_progress
+        ).progress = if (habits.isEmpty()) {
+            0
+        } else {
+            completed * 100 / habits.size
+        }
 
-        val list = findViewById<LinearLayout>(R.id.habit_list)
+        val list = findViewById<LinearLayout>(
+            R.id.habit_list
+        )
+
         list.removeAllViews()
 
         if (habits.isEmpty()) {
@@ -243,21 +271,30 @@ class MainActivity : Activity() {
         }
 
         habits.forEach { habit ->
+
             val row = layoutInflater.inflate(
                 R.layout.item_habit,
                 list,
                 false
             )
 
-            row.findViewById<TextView>(R.id.habit_name).text =
-                habit.name
+            // Habit name
+            row.findViewById<TextView>(
+                R.id.habit_name
+            ).text = habit.name
 
-            row.findViewById<TextView>(R.id.habit_icon).text =
-                categoryIcon(habit.category)
+            // Category icon
+            row.findViewById<TextView>(
+                R.id.habit_icon
+            ).text = categoryIcon(habit.category)
 
-            val weeklyCompleted = HabitStats.count(habit, today)
+            // Weekly progress
+            val weeklyCompleted =
+                HabitStats.count(habit, today)
 
-            row.findViewById<TextView>(R.id.habit_detail).text =
+            row.findViewById<TextView>(
+                R.id.habit_detail
+            ).text =
                 "$weeklyCompleted/${habit.target} days this week" +
                         if (habit.category.isBlank()) {
                             ""
@@ -278,16 +315,19 @@ class MainActivity : Activity() {
             ).apply {
                 max = 100
                 progress = progressPercent
+
                 contentDescription =
                     "${habit.name}: $progressPercent percent of weekly goal"
             }
 
+            // Daily completion checkbox
             row.findViewById<CheckBox>(
                 R.id.habit_complete
             ).apply {
                 isChecked = today in habit.completions
 
                 setOnCheckedChangeListener { _, checked ->
+
                     val currentDate = LocalDate.now()
 
                     val updated = repository.load().map {
@@ -317,6 +357,28 @@ class MainActivity : Activity() {
                 }
             }
 
+            // Edit existing habit
+            row.findViewById<Button>(
+                R.id.edit_habit
+            ).apply {
+                contentDescription = "Edit ${habit.name}"
+
+                setOnClickListener {
+                    val editIntent = Intent(
+                        this@MainActivity,
+                        AddHabitActivity::class.java
+                    ).apply {
+                        putExtra(
+                            AddHabitActivity.EXTRA_EDIT_HABIT_ID,
+                            habit.id
+                        )
+                    }
+
+                    startActivity(editIntent)
+                }
+            }
+
+            // Delete habit
             row.findViewById<Button>(
                 R.id.delete_habit
             ).apply {
@@ -343,8 +405,14 @@ class MainActivity : Activity() {
                     habit.name
                 )
             )
-            .setNegativeButton(R.string.cancel, null)
-            .setPositiveButton(R.string.delete_habit) { _, _ ->
+            .setNegativeButton(
+                R.string.cancel,
+                null
+            )
+            .setPositiveButton(
+                R.string.delete_habit
+            ) { _, _ ->
+
                 val remaining = repository.load()
                     .filterNot { it.id == habit.id }
 

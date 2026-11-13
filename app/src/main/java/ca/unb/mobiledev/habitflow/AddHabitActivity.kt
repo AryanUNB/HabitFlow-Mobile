@@ -12,12 +12,42 @@ import java.util.UUID
 
 class AddHabitActivity : Activity() {
 
+    companion object {
+        const val EXTRA_EDIT_HABIT_ID = "edit_habit_id"
+    }
+
     private val green = Color.rgb(21, 62, 53)
     private val pageBackgroundColor = Color.rgb(243, 247, 244)
 
+    private lateinit var repository: HabitRepository
+    private var editingHabit: Habit? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        showCategoryScreen()
+
+        repository = HabitRepository(this)
+
+        val editId = intent.getStringExtra(EXTRA_EDIT_HABIT_ID)
+
+        if (editId != null) {
+            editingHabit = repository.load().firstOrNull {
+                it.id == editId
+            }
+
+            if (editingHabit == null) {
+                Toast.makeText(
+                    this,
+                    "Habit not found.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                finish()
+                return
+            }
+
+            showHabitForm(editingHabit!!.category)
+        } else {
+            showCategoryScreen()
+        }
     }
 
     private fun dp(value: Int): Int =
@@ -34,31 +64,25 @@ class AddHabitActivity : Activity() {
             setPadding(dp(24), dp(24), dp(24), dp(24))
         }
 
-        val backButton = Button(this).apply {
+        container.addView(Button(this).apply {
             text = "BACK"
             setOnClickListener { finish() }
-        }
+        })
 
-        container.addView(backButton)
-
-        val heading = TextView(this).apply {
+        container.addView(TextView(this).apply {
             text = "Choose your focus"
             textSize = 29f
             setTextColor(green)
             setTypeface(null, Typeface.BOLD)
             setPadding(0, dp(24), 0, dp(8))
-        }
+        })
 
-        container.addView(heading)
-
-        val subtitle = TextView(this).apply {
+        container.addView(TextView(this).apply {
             text = "What would you like to work on?"
             textSize = 16f
             setTextColor(Color.DKGRAY)
             setPadding(0, 0, 0, dp(20))
-        }
-
-        container.addView(subtitle)
+        })
 
         addCategory(
             container,
@@ -109,17 +133,28 @@ class AddHabitActivity : Activity() {
         val card = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(18), dp(18), dp(18), dp(18))
+
+            setPadding(
+                dp(18),
+                dp(18),
+                dp(18),
+                dp(18)
+            )
 
             background = GradientDrawable().apply {
                 setColor(Color.WHITE)
                 cornerRadius = dp(18).toFloat()
-                setStroke(dp(1), Color.rgb(215, 229, 222))
+
+                setStroke(
+                    dp(1),
+                    Color.rgb(215, 229, 222)
+                )
             }
 
             elevation = dp(2).toFloat()
             isClickable = true
             isFocusable = true
+
             contentDescription = "$title. $description"
 
             setOnClickListener {
@@ -129,14 +164,12 @@ class AddHabitActivity : Activity() {
             }
         }
 
-        val icon = TextView(this).apply {
-            text = emoji
-            textSize = 30f
-            gravity = Gravity.CENTER
-        }
-
         card.addView(
-            icon,
+            TextView(this).apply {
+                text = emoji
+                textSize = 30f
+                gravity = Gravity.CENTER
+            },
             LinearLayout.LayoutParams(dp(55), dp(55))
         )
 
@@ -145,22 +178,19 @@ class AddHabitActivity : Activity() {
             setPadding(dp(12), 0, 0, 0)
         }
 
-        val name = TextView(this).apply {
+        textContainer.addView(TextView(this).apply {
             text = title
             textSize = 19f
             setTextColor(green)
             setTypeface(null, Typeface.BOLD)
-        }
+        })
 
-        val detail = TextView(this).apply {
+        textContainer.addView(TextView(this).apply {
             text = description
             textSize = 14f
             setTextColor(Color.GRAY)
             setPadding(0, dp(4), 0, 0)
-        }
-
-        textContainer.addView(name)
-        textContainer.addView(detail)
+        })
 
         card.addView(
             textContainer,
@@ -171,25 +201,35 @@ class AddHabitActivity : Activity() {
             )
         )
 
-        val params = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        ).apply {
-            bottomMargin = dp(14)
-        }
-
-        container.addView(card, params)
+        container.addView(
+            card,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                bottomMargin = dp(14)
+            }
+        )
     }
 
     private fun showHabitForm(selectedCategory: String) {
         setContentView(R.layout.activity_add_habit)
         fitSystemBars()
 
+        val currentHabit = editingHabit
+
         findViewById<Button>(R.id.back).setOnClickListener {
-            showCategoryScreen()
+            if (currentHabit != null) {
+                finish()
+            } else {
+                showCategoryScreen()
+            }
         }
 
+        val nameInput = findViewById<EditText>(R.id.name)
+        val categoryInput = findViewById<EditText>(R.id.category)
         val target = findViewById<Spinner>(R.id.target)
+        val saveButton = findViewById<Button>(R.id.save)
 
         target.adapter = ArrayAdapter(
             this,
@@ -197,31 +237,77 @@ class AddHabitActivity : Activity() {
             (1..7).map { "$it days per week" }
         )
 
-        target.setSelection(4)
+        if (currentHabit != null) {
+            // Prepopulate the form with existing values.
+            nameInput.setText(currentHabit.name)
+            categoryInput.setText(currentHabit.category)
 
-        val category = findViewById<EditText>(R.id.category)
-        category.setText(selectedCategory)
+            target.setSelection(
+                (currentHabit.target - 1).coerceIn(0, 6)
+            )
 
-        findViewById<Button>(R.id.save).setOnClickListener {
-            val input = findViewById<EditText>(R.id.name)
-            val name = input.text.toString().trim()
+            saveButton.text = "SAVE CHANGES"
+        } else {
+            categoryInput.setText(selectedCategory)
+            target.setSelection(4)
+
+            saveButton.text = "SAVE HABIT"
+        }
+
+        saveButton.setOnClickListener {
+            val name = nameInput.text.toString().trim()
+            val category = categoryInput.text.toString().trim()
+            val weeklyTarget = target.selectedItemPosition + 1
 
             if (name.isEmpty()) {
-                input.error = "Enter a habit name"
-                input.requestFocus()
+                nameInput.error = "Enter a habit name"
+                nameInput.requestFocus()
                 return@setOnClickListener
             }
 
-            val habit = Habit(
-                UUID.randomUUID().toString(),
-                name,
-                target.selectedItemPosition + 1,
-                category.text.toString().trim()
-            )
+            val habits = repository.load()
 
-            val repository = HabitRepository(this)
+            val saved = if (currentHabit != null) {
+                // Preserve the existing ID and completion history.
+                if (habits.none { it.id == currentHabit.id }) {
+                    false
+                } else {
+                    val updatedHabits = habits.map { habit ->
+                        if (habit.id == currentHabit.id) {
+                            habit.copy(
+                                name = name,
+                                category = category,
+                                target = weeklyTarget
+                            )
+                        } else {
+                            habit
+                        }
+                    }
 
-            if (repository.save(repository.load() + habit)) {
+                    repository.save(updatedHabits)
+                }
+            } else {
+                val newHabit = Habit(
+                    UUID.randomUUID().toString(),
+                    name,
+                    weeklyTarget,
+                    category
+                )
+
+                repository.save(habits + newHabit)
+            }
+
+            if (saved) {
+                Toast.makeText(
+                    this,
+                    if (currentHabit != null) {
+                        "Habit updated successfully"
+                    } else {
+                        "Habit created successfully"
+                    },
+                    Toast.LENGTH_SHORT
+                ).show()
+
                 finish()
             } else {
                 Toast.makeText(

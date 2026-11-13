@@ -8,7 +8,6 @@
     android:layout_marginBottom="14dp"
     android:background="@drawable/card_background">
 
-  <!-- Habit heading -->
   <LinearLayout
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
@@ -20,7 +19,6 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:gravity="center"
-        android:text="🎯"
         android:textSize="28sp"
         android:importantForAccessibility="no"
         android:layout_marginEnd="12dp" />
@@ -52,7 +50,6 @@
 
   </LinearLayout>
 
-  <!-- Weekly progress -->
   <ProgressBar
       android:id="@+id/habit_progress"
       style="?android:attr/progressBarStyleHorizontal"
@@ -64,7 +61,6 @@
       android:progressTint="#278568"
       android:progressBackgroundTint="#DFEAE3" />
 
-  <!-- Actions -->
   <LinearLayout
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
@@ -82,6 +78,16 @@
         android:textColor="#153E35"
         android:textSize="14sp"
         android:buttonTint="#278568" />
+
+    <Button
+        android:id="@+id/edit_habit"
+        style="?android:attr/borderlessButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:text="Edit"
+        android:textColor="#278568"
+        android:textSize="13sp"
+        android:textAllCaps="false" />
 
     <Button
         android:id="@+id/delete_habit"
