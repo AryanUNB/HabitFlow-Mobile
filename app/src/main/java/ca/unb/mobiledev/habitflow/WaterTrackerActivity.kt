@@ -7,6 +7,7 @@ import android.animation.ValueAnimator
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
+import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Canvas
 import android.graphics.Color
@@ -21,6 +22,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.LinearInterpolator
 import android.widget.*
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -36,35 +40,60 @@ class WaterTrackerActivity : Activity() {
     private lateinit var progressBar: ProgressBar
     private lateinit var addButton: Button
     private lateinit var celebration: WaterConfettiView
+    private lateinit var historyContainer: LinearLayout
+    private lateinit var historyTitle: TextView
 
     private val darkGreen = Color.rgb(21, 62, 53)
     private val green = Color.rgb(39, 133, 104)
+    private val backgroundColor = Color.rgb(243, 247, 244)
 
     private fun dp(value: Int): Int =
         (value * resources.displayMetrics.density).toInt()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         repository = WaterTrackerRepository(this)
-
         createScreen()
         updateProgress(false)
     }
 
-    private fun createScreen() {
+    private fun createCard(): LinearLayout {
+        return LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER_HORIZONTAL
 
+            setPadding(
+                dp(18),
+                dp(20),
+                dp(18),
+                dp(20)
+            )
+
+            background = GradientDrawable().apply {
+                setColor(Color.WHITE)
+                cornerRadius = dp(22).toFloat()
+            }
+        }
+    }
+
+    private fun createScreen() {
         val root = FrameLayout(this)
 
         val scrollView = ScrollView(this).apply {
-            setBackgroundColor(Color.rgb(243, 247, 244))
+            setBackgroundColor(backgroundColor)
             isFillViewport = true
         }
 
         val container = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER_HORIZONTAL
-            setPadding(dp(24), dp(24), dp(24), dp(32))
+
+            setPadding(
+                dp(24),
+                dp(24),
+                dp(24),
+                dp(32)
+            )
         }
 
         val backButton = Button(this).apply {
@@ -72,7 +101,6 @@ class WaterTrackerActivity : Activity() {
             isAllCaps = false
             setOnClickListener { finish() }
         }
-
         container.addView(backButton)
 
         val title = TextView(this).apply {
@@ -83,7 +111,6 @@ class WaterTrackerActivity : Activity() {
             gravity = Gravity.CENTER
             setPadding(0, dp(24), 0, dp(8))
         }
-
         container.addView(title)
 
         container.addView(TextView(this).apply {
@@ -93,16 +120,7 @@ class WaterTrackerActivity : Activity() {
             setTextColor(Color.DKGRAY)
         })
 
-        val card = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER_HORIZONTAL
-            setPadding(dp(18), dp(20), dp(18), dp(20))
-
-            background = GradientDrawable().apply {
-                setColor(Color.WHITE)
-                cornerRadius = dp(22).toFloat()
-            }
-        }
+        val card = createCard()
 
         container.addView(
             card,
@@ -120,7 +138,6 @@ class WaterTrackerActivity : Activity() {
             setTextColor(darkGreen)
             setTypeface(null, Typeface.BOLD)
         }
-
         card.addView(progressText)
 
         goalText = TextView(this).apply {
@@ -129,7 +146,6 @@ class WaterTrackerActivity : Activity() {
             setTextColor(Color.GRAY)
             setPadding(0, dp(6), 0, dp(12))
         }
-
         card.addView(goalText)
 
         progressBar = ProgressBar(
@@ -174,7 +190,6 @@ class WaterTrackerActivity : Activity() {
             setTextColor(darkGreen)
             setPadding(0, dp(4), 0, dp(18))
         }
-
         card.addView(messageText)
 
         addButton = Button(this).apply {
@@ -225,10 +240,7 @@ class WaterTrackerActivity : Activity() {
             isAllCaps = false
             textSize = 15f
             setTextColor(green)
-
-            setOnClickListener {
-                showGoalDialog()
-            }
+            setOnClickListener { showGoalDialog() }
         }
 
         card.addView(
@@ -241,8 +253,88 @@ class WaterTrackerActivity : Activity() {
             }
         )
 
+        // Feature 7: Open seven-day water statistics.
+        val weeklyHistoryButton = Button(this).apply {
+            text = "View Weekly History"
+            isAllCaps = false
+            textSize = 16f
+            setTextColor(Color.WHITE)
+
+            background = GradientDrawable().apply {
+                setColor(darkGreen)
+                cornerRadius = dp(14).toFloat()
+            }
+
+            setOnClickListener {
+                startActivity(
+                    Intent(
+                        this@WaterTrackerActivity,
+                        WaterHistoryActivity::class.java
+                    )
+                )
+            }
+        }
+
+        card.addView(
+            weeklyHistoryButton,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                dp(52)
+            ).apply {
+                topMargin = dp(10)
+            }
+        )
+
+        // Timestamped water entry history.
+        val historyCard = createCard()
+
+        container.addView(
+            historyCard,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = dp(18)
+            }
+        )
+
+        historyTitle = TextView(this).apply {
+            text = "Today's Water History"
+            textSize = 21f
+            setTypeface(null, Typeface.BOLD)
+            setTextColor(darkGreen)
+            gravity = Gravity.START
+        }
+
+        historyCard.addView(
+            historyTitle,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        )
+
+        historyCard.addView(TextView(this).apply {
+            text = "Each entry represents 250 mL of water."
+            textSize = 13f
+            setTextColor(Color.GRAY)
+            setPadding(0, dp(8), 0, dp(16))
+        })
+
+        historyContainer = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+        }
+
+        historyCard.addView(
+            historyContainer,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        )
+
         container.addView(TextView(this).apply {
-            text = "Water intake is saved automatically."
+            text = "Water intake and history are saved automatically."
             textSize = 13f
             gravity = Gravity.CENTER
             setTextColor(Color.GRAY)
@@ -278,8 +370,149 @@ class WaterTrackerActivity : Activity() {
         fitSystemBars()
     }
 
-    private fun showGoalDialog() {
+    private fun formatTimestamp(timestamp: String?): String {
+        if (timestamp == null) {
+            return "Time unavailable (older entry)"
+        }
 
+        return try {
+            val time = Instant.parse(timestamp)
+                .atZone(ZoneId.systemDefault())
+
+            time.format(
+                DateTimeFormatter.ofPattern("h:mm a")
+            )
+        } catch (_: Exception) {
+            "Time unavailable"
+        }
+    }
+
+    private fun updateHistory() {
+        val entries = repository.getEntries()
+
+        historyTitle.text =
+            "Today's Water History (${entries.size})"
+
+        historyContainer.removeAllViews()
+
+        if (entries.isEmpty()) {
+            historyContainer.addView(TextView(this).apply {
+                text = "No water recorded today."
+                textSize = 15f
+                setTextColor(Color.GRAY)
+                setPadding(0, dp(12), 0, dp(12))
+            })
+            return
+        }
+
+        entries.asReversed().forEach { entry ->
+            addHistoryRow(entry)
+        }
+    }
+
+    private fun addHistoryRow(entry: WaterIntakeEntry) {
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+
+            setPadding(
+                dp(4),
+                dp(10),
+                dp(4),
+                dp(10)
+            )
+        }
+
+        val details = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+        }
+
+        details.addView(TextView(this).apply {
+            text = "${entry.amountMl} mL"
+            textSize = 17f
+            setTypeface(null, Typeface.BOLD)
+            setTextColor(darkGreen)
+        })
+
+        details.addView(TextView(this).apply {
+            text = formatTimestamp(entry.timestamp)
+            textSize = 13f
+            setTextColor(Color.GRAY)
+            setPadding(0, dp(3), 0, 0)
+        })
+
+        row.addView(
+            details,
+            LinearLayout.LayoutParams(
+                0,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                1f
+            )
+        )
+
+        val deleteButton = Button(this).apply {
+            text = "Delete"
+            textSize = 13f
+            isAllCaps = false
+            setTextColor(Color.rgb(155, 55, 55))
+
+            setOnClickListener {
+                confirmDeleteEntry(entry)
+            }
+        }
+
+        row.addView(
+            deleteButton,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                dp(48)
+            )
+        )
+
+        historyContainer.addView(row)
+
+        historyContainer.addView(
+            View(this).apply {
+                setBackgroundColor(
+                    Color.rgb(230, 235, 232)
+                )
+            },
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                dp(1)
+            )
+        )
+    }
+
+    private fun confirmDeleteEntry(entry: WaterIntakeEntry) {
+        AlertDialog.Builder(this)
+            .setTitle("Delete Water Entry?")
+            .setMessage(
+                "Remove ${entry.amountMl} mL recorded at " +
+                        "${formatTimestamp(entry.timestamp)}?"
+            )
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("Delete") { _, _ ->
+                if (repository.deleteEntry(entry.id)) {
+                    updateProgress(false)
+
+                    Toast.makeText(
+                        this,
+                        "Water entry deleted.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    Toast.makeText(
+                        this,
+                        "Could not delete entry.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+            .show()
+    }
+
+    private fun showGoalDialog() {
         val input = EditText(this).apply {
             inputType = InputType.TYPE_CLASS_NUMBER
             setSingleLine(true)
@@ -321,7 +554,6 @@ class WaterTrackerActivity : Activity() {
                 ) {
                     input.error =
                         "Enter a value from 250 to 10,000"
-
                     return@setOnClickListener
                 }
 
@@ -342,7 +574,6 @@ class WaterTrackerActivity : Activity() {
     }
 
     private fun updateProgress(animate: Boolean) {
-
         val glasses = repository.getGlasses()
         val consumed = repository.getWaterMl()
         val goal = repository.getGoalMl()
@@ -384,6 +615,8 @@ class WaterTrackerActivity : Activity() {
 
         addButton.isEnabled =
             glasses < Int.MAX_VALUE
+
+        updateHistory()
     }
 
     override fun onResume() {
@@ -396,7 +629,6 @@ class WaterTrackerActivity : Activity() {
     }
 
     override fun onPause() {
-
         if (::waterGlass.isInitialized) {
             waterGlass.stopAnimations()
         }
@@ -410,10 +642,7 @@ class WaterTrackerActivity : Activity() {
 }
 
 /**
- * Celebration with physically inspired falling confetti
- * and flowing, curling party streamers.
- *
- * Runs above the tracker without blocking touches.
+ * Falling confetti and curling party streamers.
  */
 private class WaterConfettiView(
     context: Context
@@ -454,7 +683,10 @@ private class WaterConfettiView(
     )
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val ribbonPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+
+    private val ribbonPaint = Paint(
+        Paint.ANTI_ALIAS_FLAG
+    ).apply {
         style = Paint.Style.STROKE
         strokeCap = Paint.Cap.ROUND
         strokeJoin = Paint.Join.ROUND
@@ -477,9 +709,6 @@ private class WaterConfettiView(
     private fun dp(value: Float): Float =
         value * resources.displayMetrics.density
 
-    /**
-     * Start two confetti bursts near the animated water glass.
-     */
     fun play(anchor: View) {
         animator?.cancel()
 
@@ -506,16 +735,15 @@ private class WaterConfettiView(
 
         val random = Random.Default
 
-        // Generate individual confetti particles.
         pieces = List(90) { index ->
-
             val side = if (index % 2 == 0) 0 else 1
-
             val direction =
                 if (side == 0) 1f else -1f
 
             val velocityX = dp(
-                direction * (30f + random.nextFloat() * 95f) +
+                direction * (
+                        30f + random.nextFloat() * 95f
+                        ) +
                         (random.nextFloat() - 0.5f) * 180f
             )
 
@@ -530,8 +758,12 @@ private class WaterConfettiView(
                 delay = random.nextFloat() * 0.13f,
                 rotation = random.nextFloat() * 360f,
                 spin = (random.nextFloat() - 0.5f) * 1100f,
-                width = dp(3.5f + random.nextFloat() * 3.5f),
-                height = dp(6f + random.nextFloat() * 6f),
+                width = dp(
+                    3.5f + random.nextFloat() * 3.5f
+                ),
+                height = dp(
+                    6f + random.nextFloat() * 6f
+                ),
                 color = colors[index % colors.size],
                 flutterPhase = random.nextFloat() *
                         (2f * PI.toFloat()),
@@ -539,9 +771,7 @@ private class WaterConfettiView(
             )
         }
 
-        // Colored curling party streamers.
         streamers = List(7) { index ->
-
             val side = if (index % 2 == 0) 0 else 1
             val direction =
                 if (side == 0) 1f else -1f
@@ -559,7 +789,9 @@ private class WaterConfettiView(
                 delay = index * 0.045f,
                 phase = random.nextFloat() *
                         2f * PI.toFloat(),
-                color = colors[(index + 2) % colors.size],
+                color = colors[
+                    (index + 2) % colors.size
+                ],
                 curl = dp(
                     8f + random.nextFloat() * 8f
                 )
@@ -616,10 +848,7 @@ private class WaterConfettiView(
 
         val time = progress * durationSeconds
 
-        // Draw ribbons behind the confetti.
         drawPartyStreamers(canvas, time)
-
-        // Draw free-falling confetti in front.
         drawConfetti(canvas, time)
     }
 
@@ -641,7 +870,6 @@ private class WaterConfettiView(
                     sourceRightX
                 }
 
-            // Horizontal air resistance.
             val x =
                 originX +
                         piece.velocityX * time /
@@ -650,13 +878,11 @@ private class WaterConfettiView(
                             time * 8f + piece.flutterPhase
                         ) * dp(6f)
 
-            // Gravity gradually pulls each piece down.
             val y =
                 sourceY +
                         piece.velocityY * time +
                         0.5f * gravity * time * time
 
-            // Fade near the end of the animation.
             val fade = if (time > 1.7f) {
                 ((2.4f - time) / 0.7f)
                     .coerceIn(0f, 1f)
@@ -666,17 +892,19 @@ private class WaterConfettiView(
 
             paint.color = piece.color
             paint.alpha =
-                (fade * 255f).toInt().coerceIn(0, 255)
+                (fade * 255f).toInt()
+                    .coerceIn(0, 255)
+
             paint.style = Paint.Style.FILL
 
-            // Tumbling changes apparent particle width.
             val tumble = cos(
                 time * 11f + piece.flutterPhase
             )
 
             val visibleWidth =
                 piece.width *
-                        (0.30f + 0.70f * kotlin.math.abs(tumble))
+                        (0.30f + 0.70f *
+                                kotlin.math.abs(tumble))
 
             canvas.save()
 
@@ -729,23 +957,21 @@ private class WaterConfettiView(
                     sourceRightX
                 }
 
-            // A streamer trails behind its moving tip.
-            val trailStart = (
-                    time - 0.85f
-                    ).coerceAtLeast(0f)
+            val trailStart =
+                (time - 0.85f).coerceAtLeast(0f)
 
             ribbonPath.reset()
 
             val samples = 32
 
             for (i in 0..samples) {
-                val fraction = i.toFloat() / samples
+                val fraction =
+                    i.toFloat() / samples
 
                 val t =
                     trailStart +
                             (time - trailStart) * fraction
 
-                // Broad arc with gravity.
                 val baseX =
                     originX +
                             streamer.velocityX * t /
@@ -756,11 +982,11 @@ private class WaterConfettiView(
                             streamer.velocityY * t +
                             0.5f * gravity * t * t
 
-                // Continuous curls that unravel as the ribbon flies.
                 val curlX = sin(
                     t * 17f + streamer.phase
                 ) * streamer.curl *
-                        (t * 2.5f).coerceIn(0f, 1f)
+                        (t * 2.5f)
+                            .coerceIn(0f, 1f)
 
                 val curlY = cos(
                     t * 17f + streamer.phase
@@ -785,7 +1011,9 @@ private class WaterConfettiView(
 
             ribbonPaint.color = streamer.color
             ribbonPaint.alpha =
-                (fade * 230f).toInt().coerceIn(0, 255)
+                (fade * 230f).toInt()
+                    .coerceIn(0, 255)
+
             ribbonPaint.strokeWidth = dp(3.2f)
 
             canvas.drawPath(

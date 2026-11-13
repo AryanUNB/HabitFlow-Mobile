@@ -23,11 +23,15 @@
             android:exported="false" />
 
         <activity
-            android:name=".StepTrackerActivity"
+            android:name=".WaterHistoryActivity"
             android:exported="false" />
 
         <activity
             android:name=".WaterTrackerActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".StepTrackerActivity"
             android:exported="false" />
 
         <activity
