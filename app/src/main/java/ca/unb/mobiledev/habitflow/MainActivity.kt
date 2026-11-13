@@ -189,6 +189,15 @@ class MainActivity : Activity() {
             )
         }
 
+        // Feature 10: Achievements & Rewards
+        findViewById<Button>(
+            R.id.open_achievements
+        ).setOnClickListener {
+            startActivity(
+                Intent(this, AchievementsActivity::class.java)
+            )
+        }
+
         render()
     }
 
@@ -246,7 +255,8 @@ class MainActivity : Activity() {
 
         findViewById<TextView>(
             R.id.progress_label
-        ).text = "$completed of ${habits.size} habits completed today"
+        ).text =
+            "$completed of ${habits.size} habits completed today"
 
         findViewById<ProgressBar>(
             R.id.today_progress

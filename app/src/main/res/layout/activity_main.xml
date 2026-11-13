@@ -86,6 +86,14 @@
         android:textAllCaps="false"
         android:layout_marginTop="8dp" />
 
+    <Button
+        android:id="@+id/open_achievements"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Achievements &amp; Rewards"
+        android:textAllCaps="false"
+        android:layout_marginTop="8dp" />
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
