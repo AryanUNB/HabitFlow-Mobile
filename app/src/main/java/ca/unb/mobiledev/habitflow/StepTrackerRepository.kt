@@ -41,8 +41,34 @@ class StepTrackerRepository(context: Context) {
         ).coerceAtLeast(0L)
     }
 
-    // The Android sensor reports cumulative steps since reboot.
-    // Convert consecutive readings into daily progress.
+    // Return daily step counts for the last seven days.
+    // Days without recorded steps are included as zero.
+    fun getSevenDayHistory(
+        endDate: LocalDate = LocalDate.now()
+    ): List<Pair<LocalDate, Long>> {
+        return (6 downTo 0).map { daysAgo ->
+            val date = endDate.minusDays(daysAgo.toLong())
+            date to getSteps(date)
+        }
+    }
+
+    // Calculate average daily steps over seven days.
+    fun getSevenDayAverageSteps(
+        endDate: LocalDate = LocalDate.now()
+    ): Long {
+        return getSevenDayHistory(endDate)
+            .sumOf { it.second } / 7L
+    }
+
+    fun getSevenDayTotalSteps(
+        endDate: LocalDate = LocalDate.now()
+    ): Long {
+        return getSevenDayHistory(endDate)
+            .sumOf { it.second }
+    }
+
+    // Android's step counter reports cumulative steps
+    // since the device last restarted.
     fun recordSensorReading(
         sensorTotal: Long,
         date: LocalDate = LocalDate.now()

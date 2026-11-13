@@ -23,6 +23,10 @@
             android:exported="false" />
 
         <activity
+            android:name=".StepHistoryActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".WaterHistoryActivity"
             android:exported="false" />
 

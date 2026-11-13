@@ -5,9 +5,13 @@ import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.RectF
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.hardware.Sensor
@@ -18,6 +22,7 @@ import android.os.Build
 import android.os.Bundle
 import android.text.InputType
 import android.view.Gravity
+import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import java.text.NumberFormat
@@ -36,6 +41,7 @@ class StepTrackerActivity : Activity(), SensorEventListener {
     private lateinit var percentageText: TextView
     private lateinit var progressBar: ProgressBar
     private lateinit var statusText: TextView
+    private lateinit var goalRing: StepGoalRingView
 
     private val darkGreen = Color.rgb(21, 62, 53)
     private val green = Color.rgb(39, 133, 104)
@@ -117,11 +123,39 @@ class StepTrackerActivity : Activity(), SensorEventListener {
             }
         )
 
-        card.addView(TextView(this).apply {
-            text = "👟"
-            textSize = 52f
-            gravity = Gravity.CENTER
-        })
+        // Donut chart surrounding the shoe icon.
+        val ringContainer = FrameLayout(this)
+
+        goalRing = StepGoalRingView(this)
+
+        ringContainer.addView(
+            goalRing,
+            FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        )
+
+        ringContainer.addView(
+            TextView(this).apply {
+                text = "👟"
+                textSize = 56f
+                gravity = Gravity.CENTER
+                contentDescription = "Step goal progress"
+            },
+            FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        )
+
+        card.addView(
+            ringContainer,
+            LinearLayout.LayoutParams(
+                dp(190),
+                dp(190)
+            )
+        )
 
         stepCountText = TextView(this).apply {
             textSize = 45f
@@ -188,6 +222,38 @@ class StepTrackerActivity : Activity(), SensorEventListener {
             setOnClickListener { showGoalDialog() }
         })
 
+        // Open the seven-day statistics screen.
+        val historyButton = Button(this).apply {
+            text = "View Weekly History"
+            isAllCaps = false
+            textSize = 16f
+            setTextColor(Color.WHITE)
+
+            background = GradientDrawable().apply {
+                setColor(darkGreen)
+                cornerRadius = dp(14).toFloat()
+            }
+
+            setOnClickListener {
+                startActivity(
+                    Intent(
+                        this@StepTrackerActivity,
+                        StepHistoryActivity::class.java
+                    )
+                )
+            }
+        }
+
+        card.addView(
+            historyButton,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                dp(52)
+            ).apply {
+                topMargin = dp(12)
+            }
+        )
+
         statusText = TextView(this).apply {
             text = "Checking step sensor..."
             textSize = 14f
@@ -217,10 +283,19 @@ class StepTrackerActivity : Activity(), SensorEventListener {
         val percentage = steps.toDouble() / goal * 100.0
 
         stepCountText.text = formatter.format(steps)
-        goalText.text = "Daily goal: ${formatter.format(goal)} steps"
+        goalText.text =
+            "Daily goal: ${formatter.format(goal)} steps"
 
         progressBar.progress =
-            (percentage * 10.0).coerceIn(0.0, 1000.0).toInt()
+            (percentage * 10.0)
+                .coerceIn(0.0, 1000.0)
+                .toInt()
+
+        // The ring fills to 100%.
+        // The percentage label can show values above 100%.
+        goalRing.setPercentage(
+            percentage.toFloat()
+        )
 
         percentageText.text = when {
             steps >= goal ->
@@ -257,6 +332,7 @@ class StepTrackerActivity : Activity(), SensorEventListener {
             dialog.getButton(
                 AlertDialog.BUTTON_POSITIVE
             ).setOnClickListener {
+
                 val goal = input.text.toString()
                     .trim()
                     .toIntOrNull()
@@ -271,7 +347,9 @@ class StepTrackerActivity : Activity(), SensorEventListener {
                 }
 
                 if (repository.saveGoal(goal)) {
-                    goalCelebrated = repository.getSteps() >= goal
+                    goalCelebrated =
+                        repository.getSteps() >= goal
+
                     updateProgress()
                     dialog.dismiss()
                 } else {
@@ -289,9 +367,12 @@ class StepTrackerActivity : Activity(), SensorEventListener {
 
     override fun onResume() {
         super.onResume()
+
         updateProgress()
+
         goalCelebrated =
             repository.getSteps() >= repository.getGoal()
+
         startTracking()
     }
 
@@ -310,7 +391,8 @@ class StepTrackerActivity : Activity(), SensorEventListener {
                 Manifest.permission.ACTIVITY_RECOGNITION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            statusText.text = "Physical activity permission required."
+            statusText.text =
+                "Physical activity permission required."
 
             requestPermissions(
                 arrayOf(Manifest.permission.ACTIVITY_RECOGNITION),
@@ -336,9 +418,13 @@ class StepTrackerActivity : Activity(), SensorEventListener {
     }
 
     override fun onSensorChanged(event: SensorEvent) {
-        if (event.sensor.type != Sensor.TYPE_STEP_COUNTER) return
+        if (event.sensor.type != Sensor.TYPE_STEP_COUNTER) {
+            return
+        }
 
-        val total = event.values.firstOrNull()?.toLong() ?: return
+        val total = event.values.firstOrNull()
+            ?.toLong() ?: return
+
         val previousSteps = repository.getSteps()
 
         val steps = repository.recordSensorReading(total)
@@ -382,7 +468,8 @@ class StepTrackerActivity : Activity(), SensorEventListener {
         if (requestCode == 2001) {
             if (
                 grantResults.isNotEmpty() &&
-                grantResults[0] == PackageManager.PERMISSION_GRANTED
+                grantResults[0] ==
+                PackageManager.PERMISSION_GRANTED
             ) {
                 startTracking()
             } else {
@@ -399,5 +486,72 @@ class StepTrackerActivity : Activity(), SensorEventListener {
         }
 
         super.onPause()
+    }
+}
+
+// Circular progress indicator around the shoe icon.
+private class StepGoalRingView(
+    context: Context
+) : View(context) {
+
+    private var percentage = 0f
+
+    private val trackPaint =
+        Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.rgb(225, 236, 229)
+            style = Paint.Style.STROKE
+            strokeCap = Paint.Cap.ROUND
+        }
+
+    private val progressPaint =
+        Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.rgb(39, 133, 104)
+            style = Paint.Style.STROKE
+            strokeCap = Paint.Cap.ROUND
+        }
+
+    private val arcBounds = RectF()
+
+    private fun dp(value: Float): Float =
+        value * resources.displayMetrics.density
+
+    fun setPercentage(value: Float) {
+        percentage = value.coerceIn(0f, 100f)
+        invalidate()
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        super.onDraw(canvas)
+
+        val stroke = dp(14f)
+        val padding = stroke / 2f + dp(8f)
+
+        trackPaint.strokeWidth = stroke
+        progressPaint.strokeWidth = stroke
+
+        arcBounds.set(
+            padding,
+            padding,
+            width.toFloat() - padding,
+            height.toFloat() - padding
+        )
+
+        canvas.drawArc(
+            arcBounds,
+            0f,
+            360f,
+            false,
+            trackPaint
+        )
+
+        if (percentage > 0f) {
+            canvas.drawArc(
+                arcBounds,
+                -90f,
+                360f * percentage / 100f,
+                false,
+                progressPaint
+            )
+        }
     }
 }
