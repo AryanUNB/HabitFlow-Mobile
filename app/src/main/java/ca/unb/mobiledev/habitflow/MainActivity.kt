@@ -4,6 +4,7 @@ package ca.unb.mobiledev.habitflow
 import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.ClipData
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -11,9 +12,12 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.view.DragEvent
+import android.view.View
 import android.widget.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import kotlin.math.abs
 
 class MainActivity : Activity() {
 
@@ -153,25 +157,18 @@ class MainActivity : Activity() {
         requestNotificationPermission()
         HabitReminderScheduler.schedule(this)
 
-        // Add a new habit
-        findViewById<Button>(
-            R.id.add_habit
-        ).setOnClickListener {
+        findViewById<Button>(R.id.add_habit).setOnClickListener {
             startActivity(
                 Intent(this, AddHabitActivity::class.java)
             )
         }
 
-        // Weekly statistics
-        findViewById<Button>(
-            R.id.open_stats
-        ).setOnClickListener {
+        findViewById<Button>(R.id.open_stats).setOnClickListener {
             startActivity(
                 Intent(this, StatsActivity::class.java)
             )
         }
 
-        // Water Tracker
         findViewById<Button>(
             R.id.open_water_tracker
         ).setOnClickListener {
@@ -180,7 +177,6 @@ class MainActivity : Activity() {
             )
         }
 
-        // Step Counter
         findViewById<Button>(
             R.id.open_step_tracker
         ).setOnClickListener {
@@ -189,7 +185,6 @@ class MainActivity : Activity() {
             )
         }
 
-        // Feature 10: Achievements & Rewards
         findViewById<Button>(
             R.id.open_achievements
         ).setOnClickListener {
@@ -242,6 +237,8 @@ class MainActivity : Activity() {
 
     private fun render() {
         val today = LocalDate.now()
+
+        // Display all habits, including any previously archived.
         val habits = repository.load()
 
         findViewById<TextView>(R.id.date).text =
@@ -288,17 +285,16 @@ class MainActivity : Activity() {
                 false
             )
 
-            // Habit name
+            row.tag = habit.id
+
             row.findViewById<TextView>(
                 R.id.habit_name
             ).text = habit.name
 
-            // Category icon
             row.findViewById<TextView>(
                 R.id.habit_icon
             ).text = categoryIcon(habit.category)
 
-            // Weekly progress
             val weeklyCompleted =
                 HabitStats.count(habit, today)
 
@@ -330,14 +326,12 @@ class MainActivity : Activity() {
                     "${habit.name}: $progressPercent percent of weekly goal"
             }
 
-            // Daily completion checkbox
             row.findViewById<CheckBox>(
                 R.id.habit_complete
             ).apply {
                 isChecked = today in habit.completions
 
                 setOnCheckedChangeListener { _, checked ->
-
                     val currentDate = LocalDate.now()
 
                     val updated = repository.load().map {
@@ -367,7 +361,7 @@ class MainActivity : Activity() {
                 }
             }
 
-            // Edit existing habit
+            // Edit Habit
             row.findViewById<Button>(
                 R.id.edit_habit
             ).apply {
@@ -388,7 +382,7 @@ class MainActivity : Activity() {
                 }
             }
 
-            // Delete habit
+            // Delete Habit
             row.findViewById<Button>(
                 R.id.delete_habit
             ).apply {
@@ -402,9 +396,203 @@ class MainActivity : Activity() {
                 }
             }
 
+            // Long-press the drag handle or the habit card.
+            val beginDrag = View.OnLongClickListener {
+                startHabitDrag(row, habit.id)
+            }
+
+            row.findViewById<TextView>(
+                R.id.drag_handle
+            ).setOnLongClickListener(beginDrag)
+
+            row.setOnLongClickListener(beginDrag)
+
             list.addView(row)
         }
+
+        configureDragAndDrop(list)
     }
+
+    private fun startHabitDrag(
+        row: View,
+        habitId: String
+    ): Boolean {
+        val data = ClipData.newPlainText(
+            "habit_id",
+            habitId
+        )
+
+        val shadow = View.DragShadowBuilder(row)
+
+        val started = if (
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+        ) {
+            row.startDragAndDrop(
+                data,
+                shadow,
+                habitId,
+                0
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            row.startDrag(
+                data,
+                shadow,
+                habitId,
+                0
+            )
+        }
+
+        if (started) {
+            row.alpha = 0.45f
+        }
+
+        return started
+    }
+
+    private fun configureDragAndDrop(
+        list: LinearLayout
+    ) {
+        list.setOnDragListener { _, event ->
+
+            when (event.action) {
+
+                DragEvent.ACTION_DRAG_STARTED -> {
+                    event.localState is String &&
+                            list.childCount > 1
+                }
+
+                DragEvent.ACTION_DRAG_LOCATION -> {
+                    val habitId = event.localState as? String
+
+                    if (habitId != null) {
+                        moveHabitRow(
+                            list,
+                            habitId,
+                            event.y
+                        )
+
+                        scrollWhileDragging(
+                            list,
+                            event.y
+                        )
+                    }
+
+                    true
+                }
+
+                DragEvent.ACTION_DROP -> {
+                    if (!saveHabitOrder(list)) {
+                        Toast.makeText(
+                            this,
+                            "Could not save the new order.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+
+                    true
+                }
+
+                DragEvent.ACTION_DRAG_ENDED -> {
+                    render()
+                    true
+                }
+
+                else -> true
+            }
+        }
+    }
+
+    private fun moveHabitRow(
+        list: LinearLayout,
+        habitId: String,
+        pointerY: Float
+    ) {
+        if (list.childCount < 2) return
+
+        val currentIndex = (0 until list.childCount)
+            .firstOrNull { index ->
+                list.getChildAt(index).tag == habitId
+            } ?: return
+
+        val targetIndex = (0 until list.childCount)
+            .minByOrNull { index ->
+                val child = list.getChildAt(index)
+
+                val centerY =
+                    (child.top + child.bottom) / 2f
+
+                abs(pointerY - centerY)
+            } ?: return
+
+        if (currentIndex == targetIndex) return
+
+        val movingRow = list.getChildAt(currentIndex)
+
+        list.removeViewAt(currentIndex)
+        list.addView(movingRow, targetIndex)
+    }
+
+    private fun scrollWhileDragging(
+        list: LinearLayout,
+        pointerY: Float
+    ) {
+        val scroll = list.parent?.parent as? ScrollView
+            ?: return
+
+        val listLocation = IntArray(2)
+        val scrollLocation = IntArray(2)
+
+        list.getLocationOnScreen(listLocation)
+        scroll.getLocationOnScreen(scrollLocation)
+
+        val screenY = listLocation[1] + pointerY
+
+        val topEdge =
+            scrollLocation[1] + dp(70)
+
+        val bottomEdge =
+            scrollLocation[1] + scroll.height - dp(70)
+
+        when {
+            screenY < topEdge ->
+                scroll.scrollBy(0, -dp(12))
+
+            screenY > bottomEdge ->
+                scroll.scrollBy(0, dp(12))
+        }
+    }
+
+    private fun saveHabitOrder(
+        list: LinearLayout
+    ): Boolean {
+        val orderedIds = (0 until list.childCount)
+            .mapNotNull { index ->
+                list.getChildAt(index).tag as? String
+            }
+
+        val allHabits = repository.load()
+
+        if (
+            orderedIds.size != allHabits.size ||
+            orderedIds.toSet() != allHabits.map { it.id }.toSet()
+        ) {
+            return false
+        }
+
+        val habitById = allHabits.associateBy {
+            it.id
+        }
+
+        val reorderedHabits = orderedIds.map { id ->
+            habitById.getValue(id)
+        }
+
+        return repository.save(reorderedHabits)
+    }
+
+    private fun dp(value: Int): Int =
+        (value * resources.displayMetrics.density).toInt()
 
     private fun confirmDelete(habit: Habit) {
         AlertDialog.Builder(this)

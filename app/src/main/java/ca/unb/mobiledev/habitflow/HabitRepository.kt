@@ -102,8 +102,7 @@ class HabitRepository(context: Context) {
 
         dates.forEach { date ->
             consecutive = if (
-                previous != null &&
-                date == previous!!.plusDays(1)
+                previous?.plusDays(1) == date
             ) {
                 consecutive + 1
             } else {
@@ -199,10 +198,9 @@ class HabitRepository(context: Context) {
             )
         }
 
-        // Initialize rewards from existing saved habits
-        // so previously completed habits are not lost.
         val existingKeys =
-            if (preferences.getBoolean(
+            if (
+                preferences.getBoolean(
                     REWARDS_INITIALIZED,
                     false
                 )
@@ -212,8 +210,8 @@ class HabitRepository(context: Context) {
                 completionKeys(load())
             }
 
-        // A completion earns tokens only once for
-        // the same habit and calendar date.
+        // Each habit/date combination earns tokens once.
+        // Previously earned rewards are retained.
         val allEarnedKeys =
             existingKeys + completionKeys(habits)
 
@@ -223,7 +221,7 @@ class HabitRepository(context: Context) {
             habits
         )
 
-        // Save habits and reward history together.
+        // The array retains the user's custom habit order.
         return preferences.edit()
             .putString(HABITS_KEY, array.toString())
             .putStringSet(
@@ -241,9 +239,8 @@ class HabitRepository(context: Context) {
     fun getRewards(): HabitRewards {
         val habits = load()
 
-        // Migrate existing completions when the
-        // rewards system is opened for the first time.
-        if (!preferences.getBoolean(
+        if (
+            !preferences.getBoolean(
                 REWARDS_INITIALIZED,
                 false
             )

@@ -74,35 +74,35 @@
         android:id="@+id/open_water_tracker"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:text="Water Tracker"
-        android:textAllCaps="false"
-        android:layout_marginTop="8dp" />
+        android:textAllCaps="false" />
 
     <Button
         android:id="@+id/open_step_tracker"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:text="Step Counter"
-        android:textAllCaps="false"
-        android:layout_marginTop="8dp" />
+        android:textAllCaps="false" />
 
     <Button
         android:id="@+id/open_achievements"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:text="Achievements &amp; Rewards"
-        android:textAllCaps="false"
-        android:layout_marginTop="8dp" />
+        android:textAllCaps="false" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="12dp"
         android:text="@string/your_habits"
         android:textSize="22sp"
         android:textStyle="bold"
-        android:textColor="#153E35"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="12dp" />
+        android:textColor="#153E35" />
 
     <LinearLayout
         android:id="@+id/habit_list"
